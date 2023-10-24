@@ -6,6 +6,7 @@ namespace CachingS3.Configuration
     {
         public AppConfiguration()
         {
+            // add configuration again
             BucketName = "";
             Region = "";
             AwsAccessKey = "";

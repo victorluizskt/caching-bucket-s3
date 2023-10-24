@@ -1,4 +1,5 @@
 ﻿using CachingS3.Interface;
+using CachingS3.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -28,7 +29,6 @@ namespace CachingS3.Controllers
             try
             {
                 var document = await _aws3Services.GetAllFileNames();
-
                 return Ok(document);
             }
             catch (Exception ex)
@@ -44,28 +44,8 @@ namespace CachingS3.Controllers
             {
                 if (file is null || file.Length <= 0)
                     return BadRequest("file is required to upload");
-
                 var result = _aws3Services.UploadFileAsync(file);
-
                 return Ok(HttpStatusCode.Created);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [HttpDelete("{documentName}")]
-        public IActionResult DeletetDocumentFromS3(string documentName)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(documentName))
-                    return BadRequest("The 'documentName' parameter is required");
-
-                _aws3Services.DeleteFileAsync(documentName);
-
-                return Ok(string.Format("The document '{0}' is deleted successfully", documentName));
             }
             catch (Exception ex)
             {
