@@ -1,6 +1,6 @@
 ﻿using CachingS3.Interface;
 
-namespace CachingS3
+namespace CachingS3.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {

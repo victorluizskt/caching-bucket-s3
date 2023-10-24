@@ -5,7 +5,7 @@ using Amazon.S3.Transfer;
 using CachingS3.Interface;
 using System.Net;
 
-namespace CachingS3
+namespace CachingS3.Service
 {
     public class Aws3Services : IAws3Services
     {
