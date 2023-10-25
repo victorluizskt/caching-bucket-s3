@@ -1,4 +1,5 @@
-﻿using CachingS3.Interface;
+﻿using CachingS3.Dto;
+using CachingS3.Interface;
 using CachingS3.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -46,6 +47,22 @@ namespace CachingS3.Controllers
                     return BadRequest("file is required to upload");
                 var result = _aws3Services.UploadFileAsync(file);
                 return Ok(HttpStatusCode.Created);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("getUser")]
+        public IActionResult CreateCache(
+            [FromBody] BodyDto bodyDto    
+        )
+        {
+            try
+            {
+                var result = _aws3Services.GetInfoUser(bodyDto);
+                return Ok(result);
             }
             catch (Exception ex)
             {

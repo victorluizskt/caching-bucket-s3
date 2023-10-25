@@ -1,5 +1,5 @@
 using CachingS3.Interface;
-using CachingS3;
+using CachingS3.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

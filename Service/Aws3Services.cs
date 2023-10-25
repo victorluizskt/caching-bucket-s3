@@ -2,8 +2,14 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using CachingS3.Dto;
 using CachingS3.Interface;
+using Newtonsoft.Json;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace CachingS3.Service
 {
@@ -105,6 +111,106 @@ namespace CachingS3.Service
             {
                 throw;
             }
+        }
+
+        public async Task<ReturnDto> GetInfoUser(BodyDto bodyDto)
+        {
+            var hash = GetHash(bodyDto);
+            var getInfoS3 = await GetDtoS3(hash);
+
+            if(getInfoS3 != null)
+            {
+                return getInfoS3;
+            }
+
+            // caso contrário busque no banco
+
+            // ~operação no banco~
+            var dto = new ReturnDto
+            {
+                Cpf = "1234567890",
+                Idade = 25,
+                Nome = "Isaac",
+                Sobrenome = "Newton"
+            };
+
+            // salva no cache
+            await SaveCache(hash, dto);
+            return dto;
+        }
+
+        private async Task<bool> SaveCache(string hash, ReturnDto dto)
+        {
+            // Converta o objeto JSON em uma string JSON
+            string json = JsonConvert.SerializeObject(dto);
+            // Converter a string JSON em um array de bytes
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+            var putRequest = new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = hash,
+                InputStream = new MemoryStream(jsonBytes)
+            };
+            // Fazer o upload do JSON diretamente para o Amazon S3
+            try
+            {
+                PutObjectResponse response = await _awsS3Client.PutObjectAsync(putRequest);
+                return response.HttpStatusCode == HttpStatusCode.OK;
+            }
+            catch (AmazonS3Exception ex)
+            {
+                Console.WriteLine($"Ocorreu um erro ao enviar o arquivo para o S3: {ex.Message}");
+            }
+            throw new NotImplementedException();
+        }
+
+        private async Task<ReturnDto> GetDtoS3(string hash)
+        {
+            try
+            {
+                GetObjectRequest getObjectRequest = new()
+                {
+                    BucketName = _bucketName,
+                    Key = hash
+                };
+
+                using (var response = await _awsS3Client.GetObjectAsync(getObjectRequest))
+                {
+                    if (response.HttpStatusCode == HttpStatusCode.OK)
+                    {
+                        using var ms = new MemoryStream();
+                        await response.ResponseStream.CopyToAsync(ms);
+                        if (ms is null || ms.ToArray().Length < 1)
+                            throw new FileNotFoundException(string.Format("The document '{0}' is not found", hash));
+                        return DeserializeFromMemoryStream(ms);   
+                    }
+                }
+
+                return new ReturnDto();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public static ReturnDto DeserializeFromMemoryStream(MemoryStream memoryStream)
+        {
+            using StreamReader streamReader = new(memoryStream);
+            using JsonReader jsonReader = new JsonTextReader(streamReader);
+            var serializer = new Newtonsoft.Json.JsonSerializer();
+            return serializer.Deserialize<ReturnDto>(jsonReader) ?? new ReturnDto();
+        }
+
+        private static string GetHash(BodyDto bodyDto)
+        {
+            var serializeObject = JsonConvert.SerializeObject(bodyDto);
+            using SHA256 sha256 = SHA256.Create();
+            byte[] inputBytes = Encoding.UTF8.GetBytes(serializeObject);
+            byte[] hashBytes = sha256.ComputeHash(inputBytes);
+            // Converta os bytes do hash para uma representação em hexadecimal
+            string hashValue = $"{BitConverter.ToString(hashBytes).Replace("-", "").ToLower()}.json";
+            return hashValue;
         }
     }
 }
