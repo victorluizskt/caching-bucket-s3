@@ -2,7 +2,6 @@
 using CachingS3.Interface;
 using CachingS3.Service;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace CachingS3.Controllers
 {
@@ -24,44 +23,14 @@ namespace CachingS3.Controllers
             );
         }
 
-        [HttpGet()]
-        public async Task<IActionResult> GetDocumentFromS3()
-        {
-            try
-            {
-                var document = await _aws3Services.GetAllFileNames();
-                return Ok(document);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [HttpPost]
-        public IActionResult UploadDocumentToS3(IFormFile file)
-        {
-            try
-            {
-                if (file is null || file.Length <= 0)
-                    return BadRequest("file is required to upload");
-                var result = _aws3Services.UploadFileAsync(file);
-                return Ok(HttpStatusCode.Created);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [HttpPost("getUser")]
-        public IActionResult CreateCache(
+        [HttpGet("getUser")]
+        public async Task<IActionResult> GetInfoUser(
             [FromBody] BodyDto bodyDto    
         )
         {
             try
             {
-                var result = _aws3Services.GetInfoUser(bodyDto);
+                var result = await _aws3Services.GetUserWithCache(bodyDto);
                 return Ok(result);
             }
             catch (Exception ex)
