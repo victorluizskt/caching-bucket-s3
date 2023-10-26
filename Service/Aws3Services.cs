@@ -25,10 +25,10 @@ namespace CachingS3.Service
             );
         }
 
-        public async Task<ReturnDto> GetUserWithCache(BodyDto bodyDto)
+        public async Task<UserDto> GetUserWithCache(BodyDto bodyDto)
         {
             var hash = Cache.GetHash(bodyDto, NameCache.FIDC);
-            var cacheS3 = await Cache.GetCacheS3<ReturnDto>(hash, _bucketName, _awsS3Client);
+            var cacheS3 = await Cache.GetCacheS3<UserDto>(hash, _bucketName, _awsS3Client);
 
             if(cacheS3 != null)
             {
@@ -37,7 +37,7 @@ namespace CachingS3.Service
 
             // Simulate operation in database
             await Task.Delay(3000);
-            var dto = new ReturnDto
+            var dto = new UserDto
             {
                 Cpf = "1234567890",
                 Idade = 25,

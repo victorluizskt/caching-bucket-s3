@@ -4,6 +4,6 @@ namespace CachingS3.Interface
 {
     public interface IAws3Services
     {
-        Task<ReturnDto> GetUserWithCache(BodyDto bodyDto);
+        Task<UserDto> GetUserWithCache(BodyDto bodyDto);
     }
 }

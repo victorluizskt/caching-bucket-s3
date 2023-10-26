@@ -3,17 +3,16 @@
 namespace CachingS3.Dto
 {
     [Serializable]
-    public class ReturnDto
+    public class UserDto
     {
         [JsonProperty(nameof(Nome))]
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
         [JsonProperty(nameof(Idade))]
         public int Idade { get; set; }
         [JsonProperty(nameof(Sobrenome))]
-        public string Sobrenome { get; set; }
+        public string? Sobrenome { get; set; }
         [JsonProperty(nameof(Cpf))]
-        public string Cpf { get; set; }
-
-        public ReturnDto() { }
+        public string? Cpf { get; set; }
+        public UserDto() { }
     }
 }
