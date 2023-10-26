@@ -23,7 +23,7 @@ namespace CachingS3.Controllers
             );
         }
 
-        [HttpGet("getUser")]
+        [HttpPost("getUser")]
         public async Task<IActionResult> GetInfoUser(
             [FromBody] BodyDto bodyDto    
         )

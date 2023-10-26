@@ -9,7 +9,6 @@ namespace CachingS3
 {
     public class Cache
     {
-
         // Generate a unique key to save/retrieve items on S3.
         public static string GetHash<T>(T bodyDto, Enum enumCache)
         {
@@ -17,17 +16,18 @@ namespace CachingS3
             using SHA256 sha256 = SHA256.Create();
             byte[] inputBytes = Encoding.UTF8.GetBytes(serializeObject);
             byte[] hashBytes = sha256.ComputeHash(inputBytes);
-            string hashValue = $"{enumCache}{BitConverter.ToString(hashBytes).Replace("-", "").ToLower()}.json";
+            string hashValue = $"{enumCache}_{BitConverter.ToString(hashBytes).Replace("-", "").ToLower()}.json";
             return hashValue;
         }
 
         // Deserialize json to your object
-        public static T? DeserializeFromMemoryStream<T>(MemoryStream memoryStream)
+        public static T? DeserializeFromMemoryStream<T>(GetObjectResponse response)
         {
-            using StreamReader streamReader = new(memoryStream);
-            using JsonReader jsonReader = new JsonTextReader(streamReader);
-            var serializer = new JsonSerializer();
-            return serializer.Deserialize<T?>(jsonReader);
+            using Stream responseStream = response.ResponseStream;
+            using StreamReader reader = new(responseStream);
+            string jsonContent = reader.ReadToEnd();
+            var jsonObject = JsonConvert.DeserializeObject<T>(jsonContent);
+            return jsonObject;
         }
 
         // Retrieve S3 cache information; if it exists, deserialize the object; otherwise, return an error.
@@ -48,11 +48,7 @@ namespace CachingS3
                 var response = await awsS3Client.GetObjectAsync(getObjectRequest);
                 if (response.HttpStatusCode == HttpStatusCode.OK)
                 {
-                    using var ms = new MemoryStream();
-                    await response.ResponseStream.CopyToAsync(ms);
-                    if (ms is null || ms.ToArray().Length < 1)
-                        throw new FileNotFoundException(string.Format("The document '{0}' is not found", hash));
-                    return DeserializeFromMemoryStream<T>(ms);
+                    return DeserializeFromMemoryStream<T>(response);
                 }
 
                 return default;
@@ -87,7 +83,7 @@ namespace CachingS3
 
             try
             {
-                PutObjectResponse response = await awsS3Client.PutObjectAsync(putRequest);
+                var response = await awsS3Client.PutObjectAsync(putRequest);
                 return response.HttpStatusCode == HttpStatusCode.OK;
             }
             catch (AmazonS3Exception ex)
