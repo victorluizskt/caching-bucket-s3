@@ -7,15 +7,15 @@ namespace CachingS3.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AwsS3Controller : ControllerBase
+    public class UserController : ControllerBase
     {
         public readonly IAppConfiguration _appConfiguration;
         public readonly IAws3Services _aws3Services;
 
-        public AwsS3Controller(IAppConfiguration appConfiguration)
+        public UserController(IAppConfiguration appConfiguration)
         {
             _appConfiguration = appConfiguration;
-            _aws3Services = new Aws3Services(
+            _aws3Services = new UserService(
                 _appConfiguration.AwsAccessKey, 
                 _appConfiguration.AwsSecretAccessKey,
                 _appConfiguration.Region, 

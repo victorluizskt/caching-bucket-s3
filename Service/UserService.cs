@@ -5,12 +5,12 @@ using CachingS3.Interface;
 
 namespace CachingS3.Service
 {
-    public class Aws3Services : IAws3Services
+    public class UserService : IAws3Services
     {
         private readonly string _bucketName;
         private readonly IAmazonS3 _awsS3Client;
 
-        public Aws3Services(
+        public UserService(
             string awsAccessKeyId, 
             string awsSecretAccessKey, 
             string region, 
